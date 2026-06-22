@@ -196,6 +196,9 @@ Ao final desta etapa, você terá uma sessão ativa do AWS Academy Learner Lab e
 
 <a id="passo-8"></a>
 
+> [!NOTE]
+> Os **IDs e nomes de turma/curso que aparecem nos prints a seguir são apenas ilustrativos** — não são os da sua turma. O **ID do laboratório (Learner Lab) correto será informado pelo professor**, específico para cada turma. Use sempre o que o professor passar, não o que está nas imagens.
+
 **8.** Para entrar em uma conta do Academy que já existe, acesse [awsacademy.com/LMS_Login](https://www.awsacademy.com/LMS_Login). Depois, no menu lateral esquerdo, clique em `Cursos` e selecione o curso da disciplina atual.
 
 ![](img/academy1.png)
@@ -324,6 +327,10 @@ Ao final desta etapa, o Codespaces conseguirá se autenticar na sua conta AWS (`
 
 **17.** Volte para a aba do Codespaces criado na Parte 1. Verifique se o terminal está aberto — se não estiver, abra pelo menu `Terminal` → `New Terminal`.
 
+![](img/codespaces14.png)
+
+![](img/codespaces15.png)
+
 ---
 
 <a id="passo-18"></a>
@@ -334,6 +341,8 @@ Ao final desta etapa, o Codespaces conseguirá se autenticar na sua conta AWS (`
 code ~/.aws/credentials
 ```
 
+![](img/codespaces16.png)
+
 Por enquanto o arquivo estará vazio — é o que vamos preencher.
 
 ---
@@ -342,7 +351,9 @@ Por enquanto o arquivo estará vazio — é o que vamos preencher.
 
 **19.** Na aba do AWS Academy (onde você acessou a conta AWS), clique em `AWS Details` no canto superior direito e depois em `Show` no campo de **AWS CLI**.
 
-![](img/codespaces6.png)
+![](img/codespaces17.png)
+
+![](img/codespaces18.png)
 
 ---
 
