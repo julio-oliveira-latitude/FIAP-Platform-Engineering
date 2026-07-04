@@ -52,18 +52,30 @@ if ! command -v session-manager-plugin >/dev/null; then
 fi
 
 log "5/6 Provisionando a EC2 do runner com Terraform..."
+# Passamos o bucket por -backend-config em vez de editar o state.tf: assim NAO
+# sujamos os arquivos versionados do Modulo 02 (o aluno pode roda-los de novo).
 cd "$RUNNER_TF"
-sed -i "s/base-config-SEU-RM/$BUCKET/" state.tf 2>/dev/null || true
-terraform init -input=false >/dev/null
+terraform init -input=false -reconfigure -backend-config="bucket=$BUCKET" >/dev/null
 terraform apply -auto-approve -input=false >/dev/null
 INSTANCE_ID="$(terraform output -raw instance_id)"
 log "    EC2 = $INSTANCE_ID"
 
 log "6/6 Configurando a EC2 como GitLab Runner (Ansible via SSM)..."
+# Inventario gerado num arquivo temporario — nao tocamos no 'hosts' versionado.
+HOSTS_FILE="$(mktemp)"
+cat > "$HOSTS_FILE" <<EOF
+[runner]
+$INSTANCE_ID
+
+[all:vars]
+ansible_connection=community.aws.aws_ssm
+ansible_aws_ssm_bucket_name=$BUCKET
+ansible_aws_ssm_region=$REGION
+ansible_become=true
+EOF
 cd "$ANSIBLE_DIR"
-sed -i "s|<INSTANCE ID DO SERVER>|$INSTANCE_ID|" hosts 2>/dev/null || true
-sed -i "s/base-config-SEU-RM/$BUCKET/" hosts 2>/dev/null || true
-ansible-playbook -i hosts --extra-vars "gitlab_runner_name=$RUNNER_NAME" play.yaml
+ansible-playbook -i "$HOSTS_FILE" --extra-vars "gitlab_runner_name=$RUNNER_NAME" play.yaml
+rm -f "$HOSTS_FILE"
 
 log "OK! Runner '$RUNNER_NAME' provisionado. Confira em Settings > CI/CD > Runners (online)."
 # stdout = o dado util (id da instancia), para quem quiser capturar
