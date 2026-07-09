@@ -170,9 +170,15 @@ O `.gitlab-ci.yml` que você vai escrever roteia os jobs com `tags: [shell]`. O 
 
 <a id="prep-4"></a>
 
-**Passo 0.4.** No **terminal do Codespaces**, guarde o token no **SSM Parameter Store**, no parâmetro **`/fiap/gitlab-runner/token`** (é dele que o script e o playbook leem — nada de segredo em arquivo). **Você já fez exatamente isso no Módulo 02**, ao registrar o seu runner.
+**Passo 0.4.** No **terminal do Codespaces**, guarde o token no **SSM Parameter Store**, no parâmetro **`/fiap/gitlab-runner/token`** (é dele que o script e o playbook leem — nada de segredo em arquivo). Troque o `glrt-COLE-SEU-TOKEN-AQUI` pelo token que você copiou no passo 0.3:
 
-> 📚 O comando para gravar o token como `SecureString` no SSM está na **[Parte 5 do Módulo 02](../02-Ansible/01-provisionando-gitlab-runner/README.md#parte-5---gerando-o-token-do-runner-e-guardando-no-ssm)** (passo 16) — use o mesmo, só com o token novo (passo 0.3) e o parâmetro `/fiap/gitlab-runner/token`.
+```bash
+aws ssm put-parameter --name /fiap/gitlab-runner/token \
+  --type SecureString --value "glrt-COLE-SEU-TOKEN-AQUI" \
+  --region us-east-1 --overwrite
+```
+
+> 📚 **Você já fez exatamente isso no Módulo 02** ao registrar o seu runner — o mesmo comando está na **[Parte 5 do Módulo 02](../02-Ansible/01-provisionando-gitlab-runner/README.md#parte-5---gerando-o-token-do-runner-e-guardando-no-ssm)** (passo 16).
 
 ---
 
@@ -222,11 +228,16 @@ O runner roda numa EC2 com o `LabRole` (instance profile), então o `terraform` 
 > ## ✋ Daqui em diante começa o trabalho que será avaliado
 > A partir da Parte 1, é **você** que desenvolve: o módulo Terraform, os workspaces e o `.gitlab-ci.yml`. O palco (runner) já está pronto — o foco agora é **código e lógica**.
 
-Todo o código do trabalho você cria e roda **na pasta do Trabalho Final**. O script da Parte 0 pode ter deixado você em outro diretório, então entre nela agora — e é daqui que os comandos das próximas partes assumem que você está:
+Você vai desenvolver **dentro do seu repositório** `trabalho-final` (o que você criou na Parte 0). **Clone-o** para o Codespaces e entre na pasta — é daqui que os comandos das próximas partes assumem que você está (troque `<seu-usuario>` pelo seu usuário do GitLab):
 
 ```bash
-cd /workspaces/FIAP-Platform-Engineering/Trabalho-final
+cd /workspaces
+git clone git@gitlab.com:<seu-usuario>/trabalho-final.git
+cd /workspaces/trabalho-final
 ```
+
+> [!NOTE]
+> **Por que clonar, e não usar a pasta `Trabalho-final/` do curso?** Porque no Requisito 8 você vai dar `git push` para o **seu** projeto no GitLab. Trabalhando já dentro do clone dele, o push é direto — sem mover arquivos entre pastas. A pasta `Trabalho-final/` do repositório do curso guarda só este enunciado e o script da Parte 0; o **código que você desenvolve** vive no seu repositório clonado.
 
 ---
 
@@ -262,7 +273,15 @@ A pasta é `modules/web-cluster/`.
 </dt>
 <dd>
 
-Todos os `.tf` **e** o `script.sh`, de [`01-Terraform/demos/03-Count`](../01-Terraform/demos/03-Count/README.md). Copie tudo — não escolha recursos soltos: os arquivos dependem uns dos outros (além dos recursos óbvios, a demo tem os `data`/`locals` de AMI e subnet, o `aws_lb_target_group_attachment` que liga as EC2 ao ALB e o `terraform_data` que roda o `script.sh` para instalar o Nginx). Você ajusta esse conjunto nos passos seguintes.
+Todos os `.tf` **e** o `script.sh`, de [`01-Terraform/demos/03-Count`](../01-Terraform/demos/03-Count/README.md). Estando em `/workspaces/trabalho-final`, copie da demo (que fica no repositório do curso):
+
+```bash
+cp /workspaces/FIAP-Platform-Engineering/01-Terraform/demos/03-Count/*.tf \
+   /workspaces/FIAP-Platform-Engineering/01-Terraform/demos/03-Count/script.sh \
+   modules/web-cluster/
+```
+
+Copie tudo — não escolha recursos soltos: os arquivos dependem uns dos outros (além dos recursos óbvios, a demo tem os `data`/`locals` de AMI e subnet, o `aws_lb_target_group_attachment` que liga as EC2 ao ALB e o `terraform_data` que roda o `script.sh` para instalar o Nginx). Você ajusta esse conjunto nos passos seguintes.
 
 </dd>
 <dt>
@@ -371,7 +390,7 @@ Num arquivo **`outputs.tf` na raiz do projeto** (fora de `modules/`), crie um `o
 <dd>
 
 ```bash
-cd /workspaces/FIAP-Platform-Engineering/Trabalho-final
+cd /workspaces/trabalho-final
 terraform init -backend=false
 terraform fmt -check
 terraform validate
@@ -436,6 +455,28 @@ Com estes três valores:
 <dd>
 
 Ele migra o state para o S3.
+
+</dd>
+<dt>
+
+**3.3. Crie o `.gitignore`**
+
+</dt>
+<dd>
+
+Antes do primeiro `push` (Requisito 8), garanta que o `.terraform/`, o state e artefatos locais **não** vão para o Git. Na raiz do projeto:
+
+```bash
+cat > .gitignore <<'EOF'
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+build/
+plan.tfplan
+checkov-report.xml
+EOF
+```
 
 </dd>
 </dl>
@@ -521,7 +562,7 @@ Inclua `${terraform.workspace}` no nome do **ALB** (`aws_lb`), do **Target Group
 <dd>
 
 ```bash
-cd /workspaces/FIAP-Platform-Engineering/Trabalho-final
+cd /workspaces/trabalho-final
 terraform workspace new dev
 terraform workspace new prod
 terraform workspace list
@@ -659,12 +700,19 @@ Documentação oficial:
 <dl>
 <dt>
 
-**8.1. Suba só o código do trabalho para o projeto da Parte 0**
+**8.1. Faça o `git push` do seu código**
 
 </dt>
 <dd>
 
-Envie **somente** o módulo + o arquivo raiz + o `.gitlab-ci.yml` (que você escreveu no Requisito 7) para o **projeto que você criou na Parte 0** (passo 0.1). O `push` na branch principal **dispara o pipeline** automaticamente, no **runner que você provisionou na Parte 0** — igual ao [Módulo 03](../03-CICD/01-Primeiro-pipeline/README.md).
+Você desenvolveu tudo dentro do clone do seu repositório (`/workspaces/trabalho-final`), então subir é um `git push`. O `.gitignore` do passo 3.3 já barra `.terraform/`, state e artefatos — vai só o código (módulo + raiz + `.gitlab-ci.yml`). O `push` **dispara o pipeline** automaticamente, no **runner da Parte 0** — igual ao [Módulo 03](../03-CICD/01-Primeiro-pipeline/README.md).
+
+```bash
+cd /workspaces/trabalho-final
+git add .
+git commit -m "trabalho final: modulo, workspaces e pipeline"
+git push -u origin HEAD
+```
 
 </dd>
 </dl>
@@ -758,7 +806,7 @@ Suas coisas ficam em **dois lugares**: o **código** está no Codespaces (nuvem)
 Sem os artefatos pesados/locais (`.terraform/`, state, `build/`, `plan.tfplan`):
 
 ```bash
-cd /workspaces/FIAP-Platform-Engineering/Trabalho-final
+cd /workspaces/trabalho-final
 zip -r trabalho-final-<SEU-RM>.zip . \
   -x '.terraform/*' -x '*/.terraform/*' \
   -x '*.tfstate*' -x '*.terraform.lock.hcl' \
@@ -770,7 +818,7 @@ zip -r trabalho-final-<SEU-RM>.zip . \
 > [!NOTE]
 > Precisa dos padrões com **e** sem `*/`: o `.terraform/` (e o `build/`) ficam na **raiz** do projeto, e `*/.terraform/*` só casaria os de subpasta. Confira o que entrou com `unzip -l trabalho-final-<SEU-RM>.zip`. Se já tinha gerado um zip com o `.terraform` dentro, apague-o e rode de novo.
 
-No painel de arquivos do Codespaces, clique com o botão direito em `trabalho-final-<SEU-RM>.zip` → **Download**.
+Para baixar: no explorer do Codespaces, abra a pasta do seu projeto (**File → Open Folder → `/workspaces/trabalho-final`** se ela ainda não estiver visível), clique com o botão direito em `trabalho-final-<SEU-RM>.zip` → **Download**.
 
 </dd>
 <dt>
@@ -809,7 +857,7 @@ Descompacte o zip baixado, crie uma pasta `prints/` dentro dele, mova para lá o
 >
 > ```bash
 > # 1) infra do trabalho, nos dois ambientes
-> cd /workspaces/FIAP-Platform-Engineering/Trabalho-final
+> cd /workspaces/trabalho-final
 > terraform workspace select dev  && terraform destroy -auto-approve
 > terraform workspace select prod && terraform destroy -auto-approve
 >
