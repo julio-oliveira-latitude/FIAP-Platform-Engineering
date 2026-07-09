@@ -244,25 +244,25 @@ A lógica da demo Count vira um **módulo reutilizável** que recebe a quantidad
 
 Você vai pegar a infra da demo Count (o ALB + as N EC2 com Nginx) e empacotá-la como um **módulo** que recebe a quantidade de nós por variável. Faça, nesta ordem:
 
-**1.1. Crie a pasta do módulo**
+- **1.1. Crie a pasta do módulo**
 
-A pasta é `modules/web-cluster/`.
+  A pasta é `modules/web-cluster/`.
 
-**1.2. Copie para dentro dela TODOS os arquivos da demo Count**
+- **1.2. Copie para dentro dela TODOS os arquivos da demo Count**
 
-Todos os `.tf` **e** o `script.sh`, de [`01-Terraform/demos/03-Count`](../01-Terraform/demos/03-Count/README.md). Copie tudo — não escolha recursos soltos: os arquivos dependem uns dos outros (além dos recursos óbvios, a demo tem os `data`/`locals` de AMI e subnet, o `aws_lb_target_group_attachment` que liga as EC2 ao ALB e o `terraform_data` que roda o `script.sh` para instalar o Nginx). Você ajusta esse conjunto nos passos seguintes.
+  Todos os `.tf` **e** o `script.sh`, de [`01-Terraform/demos/03-Count`](../01-Terraform/demos/03-Count/README.md). Copie tudo — não escolha recursos soltos: os arquivos dependem uns dos outros (além dos recursos óbvios, a demo tem os `data`/`locals` de AMI e subnet, o `aws_lb_target_group_attachment` que liga as EC2 ao ALB e o `terraform_data` que roda o `script.sh` para instalar o Nginx). Você ajusta esse conjunto nos passos seguintes.
 
-**1.3. Apague do módulo o que pertence ao raiz**
+- **1.3. Apague do módulo o que pertence ao raiz**
 
-Remova o bloco `backend` e o `provider "aws"`, se vieram junto — eles ficam no arquivo raiz (Requisito 2), nunca no módulo.
+  Remova o bloco `backend` e o `provider "aws"`, se vieram junto — eles ficam no arquivo raiz (Requisito 2), nunca no módulo.
 
-**1.4. Parametrize a quantidade de nós**
+- **1.4. Parametrize a quantidade de nós**
 
-Crie a variável `node_count` e use-a no `count` das instâncias, no lugar do número fixo que a demo tinha.
+  Crie a variável `node_count` e use-a no `count` das instâncias, no lugar do número fixo que a demo tinha.
 
-**1.5. Exponha o DNS do ALB como um `output` do módulo**
+- **1.5. Exponha o DNS do ALB como um `output` do módulo**
 
-No arquivo **`outputs.tf` do módulo** (ele já veio da demo Count no passo 1.2 — é só editá-lo), declare um `output` que devolve `aws_lb.<seu_alb>.dns_name`. **Dê a ele o nome `alb_dns`** — o arquivo raiz vai consumi-lo no Requisito 2, e os comandos de teste (Requisito 8 e Parte 4) usam esse nome. (A demo Count expõe o ALB com outro nome de output; aqui padronizamos como `alb_dns`.)
+  No arquivo **`outputs.tf` do módulo** (ele já veio da demo Count no passo 1.2 — é só editá-lo), declare um `output` que devolve `aws_lb.<seu_alb>.dns_name`. **Dê a ele o nome `alb_dns`** — o arquivo raiz vai consumi-lo no Requisito 2, e os comandos de teste (Requisito 8 e Parte 4) usam esse nome. (A demo Count expõe o ALB com outro nome de output; aqui padronizamos como `alb_dns`.)
 
 > 📚 Como criar um módulo (fronteira do módulo, variáveis de entrada, `source`): demo **[01.2 - Modules](../01-Terraform/demos/02-Modules/README.md)**.
 
