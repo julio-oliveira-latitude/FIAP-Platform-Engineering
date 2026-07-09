@@ -442,12 +442,12 @@ O `terraform.tfstate` sai da sua máquina e passa a viver no S3, para o pipeline
 <dl>
 <dt>
 
-**3.1. Adicione o bloco `backend "s3"` no arquivo raiz**
+**3.1. Crie o `backend.tf` na raiz**
 
 </dt>
 <dd>
 
-Com estes três valores:
+Um arquivo `backend.tf` na raiz do projeto, com um bloco `backend "s3"` e estes três valores:
 
 - **bucket**: o seu `base-config-<SEU-RM>` (o mesmo do setup, Módulo 01);
 - **key**: exatamente **`trabalho-final/terraform.tfstate`**;
@@ -716,6 +716,7 @@ Você desenvolveu tudo dentro do clone do seu repositório (`/workspaces/trabalh
 
 ```bash
 cd /workspaces/trabalho-final
+terraform fmt          # formata TUDO antes de subir (o stage 'validar' roda 'fmt -check' e reprova se faltar)
 git add .
 git commit -m "trabalho final: modulo, workspaces e pipeline"
 git push -u origin HEAD
@@ -777,7 +778,8 @@ Todo o código do trabalho, **na estrutura em que você o desenvolveu** — algo
 
 ```text
 trabalho-final/
-├── main.tf                 # raiz: provider + chamada do modulo + output alb_dns
+├── main.tf                 # raiz: provider + chamada do modulo (node_count por workspace)
+├── outputs.tf              # raiz: output alb_dns (reexpoe o do modulo)
 ├── backend.tf              # state remoto no S3
 ├── .gitlab-ci.yml          # pipeline de 3 stages
 ├── .gitignore
